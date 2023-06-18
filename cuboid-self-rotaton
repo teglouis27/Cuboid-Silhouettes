@@ -1,0 +1,70 @@
+(*This shows the features of a projected silhouette of a cuboid rotated around an axis that has at least two points inside of the cuboid, A specific case of cuboid is used for the first 2 parts.*)
+
+(* Program 1: This outputs the random unit vector that the cuboid is rotated around, the area of the convex hull (silhouette), the centroid, and the angle it is rotated by in the 3 directions. *)
+randomPoints={};
+While[Length[randomPoints]<2,
+  If[MemberQ[randomPoints,randomPoint={RandomInteger[{0,3}],RandomInteger[{0,3}],RandomInteger[{0,3}]}]==False,AppendTo[randomPoints,randomPoint],None]];
+  unitVector=(Last[randomPoints]-First[randomPoints])/(Norm[Last[randomPoints]-First[randomPoints]]);
+  transformedBoxPoints=Flatten[Table[Table[Table[{x,y,z},{x,1,3}],{y,1,3}],{z,1,6}],2]- Threaded[First[randomPoints]];
+  Subscript[\[Omega],x]=unitVector[[1]];Subscript[\[Omega],y]=unitVector[[2]];
+  Subscript[\[Omega],z]=unitVector[[3]];
+  rodriguez={{0,-Subscript[\[Omega],z],Subscript[\[Omega],y]},{Subscript[\[Omega],z],0,-Subscript[\[Omega],x]},{-Subscript[\[Omega],y],Subscript[\[Omega],x],0}};
+  Manipulate[rotatedBoxMatrix=(IdentityMatrix[3] +rodriguez*Sin[\[Theta]]+ Dot[rodriguez,rodriguez])*(1-Cos[\[Theta]]);
+  rotatedBoxPoints=Dot[transformedBoxPoints,rotatedBoxMatrix];xyProjectionPoints=Drop[rotatedBoxPoints,0,-1];
+  silouetteNumerics={unitVector,Area[ConvexHullRegion[xyProjectionPoints]],N[RegionCentroid[ConvexHullRegion[xyProjectionPoints]]]},{\[Theta], Pi/40, 2Pi,Pi/40, Appearance -> "Open"},ContentSize->{500,500}]
+
+(* Program 2: This outputs the silhouette*)
+randomPoints={};
+While[Length[randomPoints]<2,
+  If[MemberQ[randomPoints,randomPoint={RandomInteger[{0,3}],RandomInteger[{0,5}],RandomInteger[{0,11}]}]==False,AppendTo[randomPoints,randomPoint],None]];
+  unitVector=(Last[randomPoints]-First[randomPoints])/(Norm[Last[randomPoints]-First[randomPoints]]);
+  transformedBoxPoints=Flatten[Table[Table[Table[{x,y,z},{x,1,3}],{y,1,5}],{z,1,11}],2]- Threaded[First[randomPoints]];Subscript[\[Omega],x]=unitVector[[1]];
+  Subscript[\[Omega],y]=unitVector[[2]];Subscript[\[Omega],z]=unitVector[[3]];rodriguez={{0,-Subscript[\[Omega],z],Subscript[\[Omega],y]},{Subscript[\[Omega],z],0,-Subscript[\[Omega],x]},{-Subscript[\[Omega],y],Subscript[\[Omega],x],0}};Manipulate[rotatedBoxMatrix=(IdentityMatrix[3] +rodriguez*Sin[\[Theta]]+ Dot[rodriguez,rodriguez])*(1-Cos[\[Theta]]);rotatedBoxPoints=Dot[transformedBoxPoints,rotatedBoxMatrix];xyProjectionPoints=Drop[rotatedBoxPoints,0,-1];
+  silouetteObject=Graphics[ConvexHullRegion[xyProjectionPoints],AspectRatio->Automatic,ImageSize->{480,480}],{\[Theta], Pi/40, 39Pi/40,Pi/40, Appearance -> "Open"},ContentSize->{500,500}]
+
+(* Program 3: This makes both possible figure drawings of a specified cuboid rotated around a unit vector by a User Interface amount.*)
+randomPoints={};
+While[Length[randomPoints]<2,
+  If[MemberQ[randomPoints,randomPoint={RandomInteger[{0,3}],RandomInteger[{0,5}],RandomInteger[{0,11}]}]==False,AppendTo[randomPoints,randomPoint],None]];
+  unitVector=(Last[randomPoints]-First[randomPoints])/(Norm[Last[randomPoints]-First[randomPoints]]);
+  transformedBoxPoints=Flatten[Table[Table[Table[{x,y,z},{x,1,3}],{y,1,5}],{z,1,11}],2]- Threaded[First[randomPoints]];
+  Subscript[\[Omega],x]=unitVector[[1]];Subscript[\[Omega],y]=unitVector[[2]];Subscript[\[Omega],z]=unitVector[[3]];
+  rodriguez={{0,-Subscript[\[Omega],z],Subscript[\[Omega],y]},{Subscript[\[Omega],z],0,-Subscript[\[Omega],x]},{-Subscript[\[Omega],y],Subscript[\[Omega],x],0}};
+  Manipulate[rotatedBoxMatrix=(IdentityMatrix[3] + rodriguez*Sin[\[Theta]]+ Dot[rodriguez,rodriguez])*(1-Cos[\[Theta]]);rotatedBoxPoints=Dot[transformedBoxPoints,rotatedBoxMatrix];
+  xyProjectionPoints=Drop[rotatedBoxPoints,0,-1];
+  silouetteObject=Graphics[ConvexHullRegion[xyProjectionPoints],AspectRatio->Automatic,ImageSize->{480,480}],{\[Theta], Pi/40, 39Pi/40,Pi/40, Appearance -> "Open"},ContentSize->{500,500}];
+  polygonalPoints=MeshCoordinates[ConvexHullMesh[xyProjectionPoints]][[MeshCells[ConvexHullMesh[xyProjectionPoints],2][[1,1]]]];
+  lineDrawing=ListLinePlot[Join[polygonalPoints,{First[polygonalPoints]}],AspectRatio->Automatic,Axes->False];
+  
+  If[Length[polygonalPoints]!=4,rendezvousPoint1={(polygonalPoints[[2,1]]-polygonalPoints[[3,1]])+polygonalPoints[[4,1]],(polygonalPoints[[2,2]]-polygonalPoints[[3,2]])+polygonalPoints[[4,2]]};
+  rendezvousPoint2={(polygonalPoints[[1,1]]-polygonalPoints[[2,1]])+polygonalPoints[[3,1]],(polygonalPoints[[1,2]]-polygonalPoints[[2,2]])+polygonalPoints[[3,2]]};
+  possibleBox1=Show[lineDrawing,Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[2]],rendezvousPoint1}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[4]],rendezvousPoint1}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[6]],rendezvousPoint1}]}]];
+  possibleBox2=Show[lineDrawing,Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[1]],rendezvousPoint2}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[3]],rendezvousPoint2}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[5]],rendezvousPoint2}]}]];
+  Rasterize[{possibleBox1,possibleBox2}],lineDrawing]
+  
+ (* Program 4: This does the same thing as Program 3, but allows for a random cuboid instead of a specified one.) 
+ randomPoints={};
+ depth=RandomInteger[{1,20}];
+ height=RandomInteger[{1,20}];
+ width=RandomInteger[{1,20}];
+ findAngle[A_,B_,C_]:=ArcCos[(EuclideanDistance[B,C]^2+EuclideanDistance[A,B]^2-EuclideanDistance[A,C]^2)/(2*EuclideanDistance[B,C]*EuclideanDistance[A,B])];
+ 
+ While[Length[randomPoints]<2,
+  If[MemberQ[randomPoints,randomPoint={RandomInteger[{0,depth}],RandomInteger[{0,height}],RandomInteger[{0,width}]}]==False,AppendTo[randomPoints,randomPoint],None]];
+  unitVector=(Last[randomPoints]-First[randomPoints])/(Norm[Last[randomPoints]-First[randomPoints]]);
+  transformedBoxPoints=Flatten[Table[Table[Table[{x,y,z},{x,1,depth}],{y,1,height}],{z,1,width}],2]- Threaded[First[randomPoints]];Subscript[\[Omega],x]=unitVector[[1]];
+  Subscript[\[Omega],y]=unitVector[[2]];
+  Subscript[\[Omega],z]=unitVector[[3]];
+  rodriguez={{0,-Subscript[\[Omega],z],Subscript[\[Omega],y]},{Subscript[\[Omega],z],0,Subscript[\[Omega],x]},{-Subscript[\[Omega],y],Subscript[\[Omega],x],0}};
+  \[Theta]=Pi/40;Manipulate[rotatedBoxMatrix=(IdentityMatrix[3] +rodriguez*Sin[\[Theta]]+ Dot[rodriguez,rodriguez])*(1-Cos[\[Theta]]);
+  rotatedBoxPoints=Dot[transformedBoxPoints,rotatedBoxMatrix];
+  xyProjectionPoints=Drop[rotatedBoxPoints,0,-1];
+  silouetteObject=Graphics[ConvexHullRegion[xyProjectionPoints],AspectRatio->Automatic,ImageSize->{480,480}];
+  polygonalPoints=MeshCoordinates[ConvexHullMesh[xyProjectionPoints]][[MeshCells[ConvexHullMesh[xyProjectionPoints],2][[1,1]]]];
+  lineDrawing=ListLinePlot[Join[polygonalPoints,{First[polygonalPoints]}],AspectRatio->Automatic,Axes->False];
+  If[Length[polygonalPoints]!=4,rendezvousPoint1={(polygonalPoints[[2,1]]-polygonalPoints[[3,1]])+polygonalPoints[[4,1]],(polygonalPoints[[2,2]]-polygonalPoints[[3,2]])+polygonalPoints[[4,2]]};
+  rendezvousPoint2={(polygonalPoints[[1,1]]-polygonalPoints[[2,1]])+polygonalPoints[[3,1]],(polygonalPoints[[1,2]]-polygonalPoints[[2,2]])+polygonalPoints[[3,2]]};
+  possibleBox1=Show[lineDrawing,Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[2]],rendezvousPoint1}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[4]],rendezvousPoint1}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[6]],rendezvousPoint1}]}]];
+  possibleBox2=Show[lineDrawing,Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[1]],rendezvousPoint2}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[3]],rendezvousPoint2}]}],Graphics[{Thickness[0.01], Orange,Line[{polygonalPoints[[5]],rendezvousPoint2}]}]];{possibleBox1,possibleBox2},lineDrawing];
+  {{\[Theta],depth,width,height,N[Subscript[\[Omega],x]],N[Subscript[\[Omega],y]],N[Subscript[\[Omega],z]]},N[{findAngle[polygonalPoints[[2]],rendezvousPoint1,polygonalPoints[[4]]],findAngle[polygonalPoints[[4]],rendezvousPoint1,polygonalPoints[[6]]],findAngle[polygonalPoints[[6]],rendezvousPoint1,polygonalPoints[[1]]],EuclideanDistance[rendezvousPoint1,polygonalPoints[[2]]],EuclideanDistance[rendezvousPoint1,polygonalPoints[[4]]],EuclideanDistance[rendezvousPoint1,polygonalPoints[[6]]]}]},{\[Theta], Pi/40, 39Pi/40,Pi/40, Appearance -> "Open"},ContentSize->{500,500}]
+
